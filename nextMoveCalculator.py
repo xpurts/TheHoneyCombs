@@ -1,6 +1,12 @@
 import collections
+from synthesize_text import synthesize_text
+from settings import grid
+
 obstacle, clear, goal = "#", ".", "*"
 width, height = 3, 3
+
+STARTPOS = (0,0)
+ENDPOS = (2,2)
 
 def bfs(grid, start):
     queue = collections.deque([[start]])
@@ -20,35 +26,45 @@ def setDirection(currentPosition, nextPosition):
     yDirection = currentPosition[0] - nextPosition[0]
 
     if(yDirection > 0 and xDirection == 0 ):
-        return "right"
+        synthesize_text("take a step to the right")
+        return nextPosition
     if(yDirection < 0 and xDirection == 0 ):
-        return "left"
+        synthesize_text("take a step to the left")
+        return nextPosition
     if(yDirection == 0 and xDirection > 0 ):
-        return "back"
+        synthesize_text("take a step back")
+        return nextPosition
     if(yDirection == 0 and xDirection < 0 ):
-        return "forward"
+        synthesize_text("take a step forward")
+        return nextPosition
 
-    return "error"
-
-STARTPOS = [(0,0),(1,0)]
-ENDPOS = (2,0)
+    synthesize_text("Error processing direction")
 
 def directions():
+    global grid
     global STARTPOS
     global ENDPOS
+    print(STARTPOS)
     path = bfs(grid, STARTPOS)
     if(path == None):
-        print("NO way to reach the destination!")
+        synthesize_text("NO way to reach the destination!")
         STARTPOS = ENDPOS
     else:
-        print(setDirection(path[0], path[1]))
-        STARTPOS = path[1]
+        print(path)
+        setDirection(path[0], path[1])
 
-grid = ["...",
-        "..#",
-        "..*"]
-while(not(STARTPOS == ENDPOS)):
-    directions()
+def getENDPOS():
+    return ENDPOS
+
+def getSTARTPOS():
+    return STARTPOS
+
+def setSTARTPOS(start):
+    global STARTPOS
+    STARTPOS = start
+
+# while(not(STARTPOS == ENDPOS)):
+    # directions()
 
 #path = bfs(grid, (2, 0))
 # [(5, 2), (4, 2), (4, 3), (4, 4), (5, 4), (6, 4)]

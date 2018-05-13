@@ -17,10 +17,10 @@ for i in range(width):
         SurfaceMapping[i][j] = firstPinNumber
         firstPinNumber += 1
 
-SurfaceState = [0] * width
-for i in range(width):
-    SurfaceState[i] = [0] * height
+SurfaceState = [[0 for x in range(width)] for y in range(height)]
 
+gridWidth = "." * width
+grid = []
 
 ###########################
 # Text-to-speech Settings #

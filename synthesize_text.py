@@ -11,24 +11,35 @@ import argparse
 from settings import ttsClient, ttsVoice, ttsAudioConfig
 from google.cloud import texttospeech
 import playsound
+import os
+
+outputIndex = 0
 
 # [START tts_synthesize_text]
 def synthesize_text(text):
+    global outputList
+    global outputIndex
 
     input_text = texttospeech.types.SynthesisInput(text=text)
     
     response = ttsClient.synthesize_speech(input_text, ttsVoice, ttsAudioConfig)
 
-    with open('output.mp3', 'wb') as out:
+    with open("output"+str(outputIndex)+".mp3", 'wb') as out:
         out.write(response.audio_content)
     
-    play_message('output.mp3')
+    play_message("output"+str(outputIndex)+".mp3")
 # [END tts_synthesize_text]
 
 
 # [START tts_play_message]
 def play_message(message):
-    playsound.playsound(message)
+    global outputIndex
+    playsound.playsound("output"+str(outputIndex)+".mp3")
+    try:
+        os.remove("output"+str(outputIndex)+".mp3")
+    except OSError:
+        pass
+    outputIndex += 1
 # [END tts_play_message]
 
 
