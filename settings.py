@@ -9,7 +9,7 @@ from google.cloud.speech import types
 #####################################
 width = 3
 height = 3
-firstPinNumber = 1
+firstPinNumber = 0
 
 SurfaceMapping = [[0 for x in range(width)] for y in range(height)]
 for i in range(width):

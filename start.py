@@ -4,37 +4,45 @@ from synthesize_text import synthesize_text
 from nextMoveCalculator import *
 import re
 import time
-#from readSerial import readSerial
 
 actionArray = []
 flag = 0
 destinationReached = 0
 
+import serial
+ser=serial.Serial(port='COM6',baudrate=9600, timeout=0.5)
+
+def readSerial():
+    return ser.read(100) #reading up to 100 bytes
+
 def initStateMatrix():
     global actionArray
     global flag
     while(1):
-        serial = "b'15\r\n11\r\n'"
-        serialList = serial.split("\n")
-        for action in serialList:
-            action = action.replace("b","").replace("\r","").replace("'","")
-            if(not(action == "")):
-                actionArray.append(action)
-        # print(actionArray)
-        
-        for i in range(width):
-            for j in range(height):
-                for action in actionArray:
-                    #print(str(SurfaceMapping[i][j]) + " " + action[1])
-                    if(str(SurfaceMapping[i][j]) == action[1]):
-                        if(not(action[1] == "1")):
-                            if(action[0] == "1"):
-                                SurfaceState[i][j] = 2
-                            if(action[0] == "0"):
-                                SurfaceState[i][j] = 0
-                        else:
-                            if(action[0] == "1"):
-                                flag = 1
+        serial = readSerial()
+        if (serial):
+            serial = str(serial)
+            serialList = serial.split("\n")
+            for action in serialList:
+                action = action.replace("b","").replace("\r","").replace("'","")
+                if(not(action == "")):
+                    actionArray.append(action)
+            # print(actionArray)
+            
+            for i in range(width):
+                for j in range(height):
+                    for action in actionArray:
+                        #print(str(SurfaceMapping[i][j]) + " " + action[1])
+                        if(str(SurfaceMapping[i][j]) == action[1]):
+                            if(not(action[1] == "0")):
+                                if(action[0] == "1"):
+                                    SurfaceState[i][j] = 2
+                                if(action[0] == "0"):
+                                    SurfaceState[i][j] = 0
+                            else:
+                                if(action[0] == "1"):
+                                    SurfaceState[i][j] = 1
+                                    flag = 1
         
         print(SurfaceState)
 
@@ -78,8 +86,13 @@ def routePathing():
 
     while(destinationReached == 0):
         directions()
+        delete = getSTARTPOS()
+        SurfaceState[delete[1]][delete[0]] = 0
         updateStateMatrix()
         start = getUserPosition()
+        while(start == getSTARTPOS()):
+            updateStateMatrix()
+            start = getUserPosition()
         setSTARTPOS(start)
         end = getENDPOS()
         if(start == end):
@@ -88,23 +101,28 @@ def routePathing():
 
 def updateStateMatrix():
     global actionArray
+    serial = None
     time.sleep(2)
-    serial = "b'01\r\n12\r\n'"
-    serialList = serial.split("\n")
-    for action in serialList:
-        action = action.replace("b","").replace("\r","").replace("'","")
-        if(not(action == "")):
-            actionArray.append(action)
-    # print(actionArray)
-    
-    for i in range(width):
-        for j in range(height):
-            for action in actionArray:
-                if(str(SurfaceMapping[i][j]) == action[1]):
-                    if(action[0] == "1"):
-                        SurfaceState[i][j] = 1
-                    if(action[0] == "0"):
-                        SurfaceState[i][j] = 0
+    while (str(serial) == "None"):
+        serial = readSerial()
+    print (type(str(serial)))
+    if (serial):
+        serial = str(serial)
+        serialList = serial.split("\n")
+        for action in serialList:
+            action = action.replace("b","").replace("\r","").replace("'","")
+            if(not(action == "")):
+                actionArray.append(action)
+        # print(actionArray)
+        
+        for i in range(width):
+            for j in range(height):
+                for action in actionArray:
+                    if(str(SurfaceMapping[i][j]) == action[1]):
+                        if(action[0] == "1"):
+                            SurfaceState[i][j] = 1
+                        if(action[0] == "0"):
+                            SurfaceState[i][j] = 0
     
     print(SurfaceState)
 
@@ -116,6 +134,8 @@ def getUserPosition():
         for j in range(height):
             if(SurfaceState[i][j] == 1):
                 return (j,i)
+    return getSTARTPOS()
+    
 
 
 
