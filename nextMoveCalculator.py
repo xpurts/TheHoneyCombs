@@ -63,6 +63,10 @@ def setSTARTPOS(start):
     global STARTPOS
     STARTPOS = start
 
+def setENDPOS(end):
+    global ENDPOS
+    ENDPOS = end
+
 # while(not(STARTPOS == ENDPOS)):
     # directions()
 

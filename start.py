@@ -7,7 +7,11 @@ import time
 
 actionArray = []
 flag = 0
+exitReached = 0
 destinationReached = 0
+exitRequest = 0
+destinationRequest = 0
+exitApplication = 0
 
 import serial
 ser=serial.Serial(port='COM6',baudrate=9600, timeout=0.5)
@@ -55,6 +59,10 @@ def initStateMatrix():
 def gridGenerator():
     global grid
     global ENDPOS
+
+    while grid:
+        grid.pop()
+    
     for i in range(width):
         line = ""
         for j in range(height):
@@ -70,39 +78,91 @@ def gridGenerator():
 
 
 def sttCommand():
+    global exitApplication
     while(1):
+        global destinationReached
+        global exitReached
+        global destinationRequest
+        global exitRequest
         command = processCurrentRequest()
-        if re.search(r'\b(help|take|table)\b', command, re.I):
-            synthesize_text("Calculating route.")
-            routePathing()
+
+
+        if re.search(r'\b(hello|honey)\b', command, re.I):
+            synthesize_text("Welcome home, honey. How should I guide you today")
             return
 
+        if re.search(r'\b(help|take|table)\b', command, re.I):
+            if (destinationReached == 0):
+                destinationRequest = 1
+                synthesize_text("Calculating route.")
+                routePathing()
+                return
+
+
+        if re.search(r'\b(return|back|entrance|out)\b', command, re.I):
+            if (exitReached == 0):
+                exitRequest = 1
+                setSTARTPOS(getENDPOS())
+                setENDPOS((0,0))
+                gridGenerator()
+                synthesize_text("Calculating route back.")
+                routePathing()
+                return
+
+        # if re.search(r'\b(face|front|desk|cupboard)\b', command, re.I):
+        #     if (destinationReached == 1):
+        #         itemDetection()
+
         if re.search(r'\b(exit|quit)\b', command, re.I):
-            print('Exiting..')
+            synthesize_text('Goodbye Honey..')
+            exitApplication = 1
             return
 
 def routePathing():
     global destinationReached
+    global destinationRequest
+    global exitReached
+    global exitRequest
 
-    while(destinationReached == 0):
-        directions()
-        delete = getSTARTPOS()
-        SurfaceState[delete[1]][delete[0]] = 0
-        updateStateMatrix()
-        start = getUserPosition()
-        while(start == getSTARTPOS()):
+    if destinationRequest == 1:
+        while(destinationReached == 0):
+            directions()
+            delete = getSTARTPOS()
+            SurfaceState[delete[1]][delete[0]] = 0
             updateStateMatrix()
             start = getUserPosition()
-        setSTARTPOS(start)
-        end = getENDPOS()
-        if(start == end):
-            destinationReached = 1
-            synthesize_text("You have reached your destination.")
+            while(start == getSTARTPOS()):
+                updateStateMatrix()
+                start = getUserPosition()
+            setSTARTPOS(start)
+            end = getENDPOS()
+            if(start == end):
+                destinationReached = 1
+                destinationRequest = 0
+                synthesize_text("You have reached your destination. Do you have any other requests?")
+    
+    if exitRequest == 1:
+        while(exitReached == 0):
+            directions()
+            delete = getSTARTPOS()
+            SurfaceState[delete[1]][delete[0]] = 0
+            updateStateMatrix()
+            start = getUserPosition()
+            while(start == getSTARTPOS()):
+                updateStateMatrix()
+                start = getUserPosition()
+            setSTARTPOS(start)
+            end = getENDPOS()
+            if(start == end):
+                exitReached = 1
+                exitRequest = 0
+                synthesize_text("You have reached the exit. Have a nice day!")
+    
 
 def updateStateMatrix():
     global actionArray
     serial = None
-    time.sleep(2)
+    #time.sleep(2)
     while (str(serial) == "None"):
         serial = readSerial()
     print (type(str(serial)))
@@ -137,9 +197,17 @@ def getUserPosition():
     return getSTARTPOS()
     
 
+# def itemDetection():
+#     while (str(serial) == "None"):
+#         serial = readSerial()
+#     print (type(str(serial)))
+#     if (serial):
+#         serial = str(serial)
+#         serialList = serial.split("\n")
 
 
 initStateMatrix()
 gridGenerator()
-sttCommand()
+while(exitApplication == 0):
+    sttCommand()
             
