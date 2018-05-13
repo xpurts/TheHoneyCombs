@@ -109,9 +109,11 @@ def sttCommand():
                 routePathing()
                 return
 
-        # if re.search(r'\b(face|front|desk|cupboard)\b', command, re.I):
-        #     if (destinationReached == 1):
-        #         itemDetection()
+        if re.search(r'\b(face|front|desk|cupboard)\b', command, re.I):
+            if (destinationReached == 1):
+                itemDetection()
+                synthesize_text("Do you need anything else?")
+                return
 
         if re.search(r'\b(exit|quit)\b', command, re.I):
             synthesize_text('Goodbye Honey..')
@@ -197,14 +199,22 @@ def getUserPosition():
     return getSTARTPOS()
     
 
-# def itemDetection():
-#     while (str(serial) == "None"):
-#         serial = readSerial()
-#     print (type(str(serial)))
-#     if (serial):
-#         serial = str(serial)
-#         serialList = serial.split("\n")
-
+def itemDetection():
+    while (str(serial) == "None"):
+        serial = readSerial()
+    if (serial):
+        serial = str(serial)
+        serialList = serial.split("\n")
+        for item in serialList
+            item = item.replace("b","").replace("\r","").replace("'","")
+            if (str(item[1]) == "9"):
+                if(str(item[0]) == "1"):
+                    synthesize_text("Here you are keeping the muffins, honey!")
+                    return
+            elif(str(item[1]) == "A")):
+                if(str(item[0]) == "1"):
+                    synthesize_text("Those are your bubblegums, honey.")
+                    return
 
 initStateMatrix()
 gridGenerator()
